@@ -20,7 +20,7 @@ def get_dealerships(request):
 
 # Create an `about` view to render a static about page
 def about(request):
-    return render(request, 'about.html')
+    return render(request, 'djangoapp/about.html')
 
 
 # Create a `contact` view to return a static contact page
