@@ -14,10 +14,29 @@
 
     <body>
     <!--Add a nav bar here -->
-        <nav>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <a href="/djangoapp/">Homepage</a>
             <a href="/djangoapp/about/">About</a>
             <a href="/djangoapp/contact/">Contact us</a>
+            {% if user.is_authenticated %}
+            <p>{{user.name}}</p>
+            <a href="/djangoapp/logout" class="btn btn-light">Log Out</a>
+            {% else %}
+            <form method="POST" action="djangoapp/login" class="form-inline">
+                <div class="form-group">
+                    <label for="username">Username: </label>
+                    <input type="text" name="username" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password: </label>
+                    <input type="password" name="password" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <a href="/djangoapp/signup" class="btn btn-light">Sign Up</a>
+                </div>
+            </form>
+            {% endif %}
         </nav>
     <!--Add a dealer table here -->
         {% block content %}
