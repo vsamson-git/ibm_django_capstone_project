@@ -9,14 +9,23 @@ from django.contrib import messages
 from datetime import datetime
 import logging
 import json
+from .restapis import get_dealers_from_cf
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
 # Create your views here.
-def get_dealerships(request):
-    return render(request, 'index.html')
+async def get_dealerships(request):
+    if request.method == "GET":
+        url = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/dealership"
+        # Get dealers from the URL
+        dealerships = get_dealers_from_cf(url)
+        # Concat all dealer's short name
+        dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
+        # Return a list of dealer short name
+        #return HttpResponse(dealer_names)
+        return render(request, 'djangoapp/index.html')#, dealer_names)
 
 # Create an `about` view to render a static about page
 def about(request):
@@ -58,10 +67,10 @@ def registration_request(request):
     return redirect('djangoapp:index')
 
 # Update the `get_dealerships` view to render the index page with a list of dealerships
-def get_dealerships(request):
-    context = {}
-    if request.method == "GET":
-        return render(request, 'djangoapp/index.html', context)
+#def get_dealerships(request):
+#    context = {}
+#    if request.method == "GET":
+#        return render(request, 'djangoapp/index.html', context)
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
