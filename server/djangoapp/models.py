@@ -3,25 +3,33 @@ from django.utils.timezone import now
 
 
 # Create your models here.
+class CarMake(models.Model):
+    name = models.CharField(null=False, max_length=50)
+    description = models.CharField(max_length=500)
 
-# <HINT> Create a Car Make model `class CarMake(models.Model)`:
-# - Name
-# - Description
-# - Any other fields you would like to include in car make model
-# - __str__ method to print a car make object
-
+    def __str__(self):
+        return self.name + " - " + self.description
 
 # <HINT> Create a Car Model model `class CarModel(models.Model):`:
-# - Many-To-One relationship to Car Make model (One Car Make has many Car Models, using ForeignKey field)
-# - Name
-# - Dealer id, used to refer a dealer created in cloudant database
-# - Type (CharField with a choices argument to provide limited choices such as Sedan, SUV, WAGON, etc.)
-# - Year (DateField)
-# - Any other fields you would like to include in car model
-# - __str__ method to print a car make object
+class CarModel(models.Model):
+    car_make = models.ForeignKey(CarMake, null=False, on_delete=models.CASCADE)
+    car_name = models.CharField(null=False, max_length=50)
+    dealer_id = models.IntegerField(null=False)
+    SEDAN = "SEDAN"
+    SUV = "SUV"
+    WAGON = "WAGON"
+    type_choices = [
+        (SEDAN, 'SEDAN'),
+        (SUV, 'SUV'),
+        (WAGON, 'WAGON')
+    ]
+    car_type = models.CharField(null=False, choices=type_choices, default=SEDAN, max_length=20)
+    car_year = models.DateField(null=True)
 
+    def __str__(self):
+        return self.car_type + " " + self.car_name + " - " + self.car_make + " " + self.car_year
 
 # <HINT> Create a plain Python class `CarDealer` to hold dealer data
-
+#class CarDealer():
 
 # <HINT> Create a plain Python class `DealerReview` to hold review data
