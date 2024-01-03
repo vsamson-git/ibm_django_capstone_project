@@ -27,7 +27,7 @@ class CarModel(models.Model):
     car_year = models.DateField(null=True)
 
     def __str__(self):
-        return self.car_type + " " + self.car_name + " - " + self.car_make + " " + self.car_year
+        return str(self.car_type) + " " + str(self.car_name) + " - " + str(self.car_make) + " " + str(self.car_year)
 
 # <HINT> Create a plain Python class `CarDealer` to hold dealer data
 #class CarDealer():
