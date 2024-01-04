@@ -2,13 +2,21 @@
 {% load static %}
 {% block content %}
 <html>
+
 <head>
     <title>Dealership Review</title>
 </head>
 
-    <body>
-        This is a HomePage2
-    </body>
+<body>
+    <ul>
+        {% for dealer in dealers %}
+        <li>
+            <p>Dealer name # {{ forloop.counter }}: {{ dealer }} </p>
+        </li>
+        {% endfor %}
+    </ul>
+
+</body>
 
 </html>
 {% endblock content %}
