@@ -80,21 +80,25 @@ def get_dealer_details(request, dealer_id):
     else:
         if request.user.is_authenticated:
             url = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/review"
-            review = dict()
-            review["name"] = request.user.name
-            review["dealership"] = dealer_id
-            review["review"] = request.POST['review']
-            review["purchase"] = request.POST['purchase']
-            if review["purchase"]:
-                review["purchase_date"] = datetime.strptime(request.POST['purchase_date'], '%m-%d-%Y').date()
-                review["car_make"] = request.POST['car_make']
-                review["car_model"] = request.POST['car_model']
-                review["car_year"] = request.POST['car_year']
-            json_payload = dict()
-            json_payload['review'] = review
-            check_review = post_request(url, json_payload).result
-            if check_review:
-                return HttpResponse(f"Review '{check_review}' was added successfully")
-            return HttpResponse("There was an error while trying to load the review")
+            try:
+                review = dict()
+                review["name"] = request.user.username
+                review["dealership"] = dealer_id
+                review["review"] = request.POST['review']
+                review["purchase"] = request.POST.get('purchase', False)
+                if review["purchase"]:
+                    review["purchase"] = True
+                    review["purchase_date"] = datetime.strptime(request.POST['purchase_date'], '%m-%d-%Y').date()
+                    review["car_make"] = request.POST['car_make']
+                    review["car_model"] = request.POST['car_model']
+                    review["car_year"] = request.POST['car_year']
+                check_review = post_request(url, review)['result']
+                if check_review:
+                    return HttpResponse(f"Review '{check_review}' was added successfully")
+                return HttpResponse("There was an error while trying to load the review")
+            except:
+                return HttpResponse("Not Enough Data for a review")
+        else:
+            return HttpResponse("You MUST authenticate first!")
 
         
