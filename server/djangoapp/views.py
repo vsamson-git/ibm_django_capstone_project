@@ -9,7 +9,7 @@ from django.contrib import messages
 from datetime import datetime
 import logging
 import json
-from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -70,14 +70,31 @@ def registration_request(request):
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
 def get_dealer_details(request, dealer_id):
-    url = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/review"
-    reviews = get_dealer_reviews_from_cf(url, dealerId=dealer_id)
-    reviews_only = [str(review.review) + " - " + str(review.sentiment) for review in reviews]
-    return HttpResponse(reviews_only)
-    #context = {'reviews': reviews_only}
-    #return render(request, 'djangoapp/index.html', context)
+    if request.method == 'GET':
+        url = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/review"
+        reviews = get_dealer_reviews_from_cf(url, dealerId=dealer_id)
+        reviews_only = [str(review.review) + " - " + str(review.sentiment) for review in reviews]
+        return HttpResponse(reviews_only)
+        #context = {'reviews': reviews_only}
+        #return render(request, 'djangoapp/index.html', context)
+    else:
+        if request.user.is_authenticated:
+            url = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/review"
+            review = dict()
+            review["name"] = request.user.name
+            review["dealership"] = dealer_id
+            review["review"] = request.POST['review']
+            review["purchase"] = request.POST['purchase']
+            if review["purchase"]:
+                review["purchase_date"] = datetime.strptime(request.POST['purchase_date'], '%m-%d-%Y').date()
+                review["car_make"] = request.POST['car_make']
+                review["car_model"] = request.POST['car_model']
+                review["car_year"] = request.POST['car_year']
+            json_payload = dict()
+            json_payload['review'] = review
+            check_review = post_request(url, json_payload).result
+            if check_review:
+                return HttpResponse(f"Review '{check_review}' was added successfully")
+            return HttpResponse("There was an error while trying to load the review")
 
-# Create a `add_review` view to submit a review
-# def add_review(request, dealer_id):
-# ...
-
+        
