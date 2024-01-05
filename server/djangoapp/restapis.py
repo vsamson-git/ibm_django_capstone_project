@@ -7,6 +7,7 @@ from .models import CarDealer, DealerReview
 from ibm_watson import NaturalLanguageUnderstandingV1
 from ibm_watson.natural_language_understanding_v1 import Features, EntitiesOptions, KeywordsOptions
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from keys import NLP_key
     
 
 # Create a `get_request` to make HTTP GET requests
@@ -111,7 +112,7 @@ def get_dealer_reviews_from_cf(url, **kwargs):
 # Create an `analyze_review_sentiments` method to call Watson NLU and analyze text
 def analyze_review_sentiments(text):
     url = "https://api.au-syd.natural-language-understanding.watson.cloud.ibm.com/instances/a8cfc93a-73c8-48d5-9d41-5e68b04121b7"
-    authenticator = IAMAuthenticator('7QAoPBg0nXI4MVVRvd82ik3TeH97qepl1crZv3sJVJ-0')
+    authenticator = IAMAuthenticator(NLP_key)
     natural_language_understanding = NaturalLanguageUnderstandingV1(
     version="2022-04-07",
     authenticator=authenticator
