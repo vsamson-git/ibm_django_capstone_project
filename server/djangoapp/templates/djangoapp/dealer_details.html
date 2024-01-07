@@ -1,18 +1,62 @@
-<!DOCTYPE html>
+{% extends 'djangoapp/base.html' %}
+{% load static %}
+{% block content %}
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
     <title>Dealership Review</title>
-    {% load static %}
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/css/bootstrap-datepicker.css"
+        rel="stylesheet">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.js"></script>
+    <style>
+        .card-header {
+            position: relative;
+        }
+
+        .card-header img {
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
 </head>
 
-    <body>
+<body>
 
     <!--Add a nav bar here -->
-
+    <h2>Reviews for dealer {{dealer_name}}</h2>
+    {% if user.is_authenticated %}
+    <a class="btn btn-primary" href="{% url 'djangoapp:add_review' dealer_id %}">Add Review</a>
+    {% endif %}
     <!-- Add reviews as cards -->
+    <div class="card-columns">
+        {% for review in reviews %}
+        <div class="card">
+            <div class="card-header">
+                {% if review.sentiment == 'positive' %}
+                <img class="card-img-left" src="{{MEDIA_URL}}/emoji/positive.png">
+                {% elif review.sentiment == 'negative' %}
+                <img class="card-img-left" src="{{MEDIA_URL}}/emoji/negative.png">
+                {% else %}
+                <img class="card-img-left" src="{{MEDIA_URL}}/emoji/neutral.png">
+                {% endif %}
+            </div>
 
-    </body>
+            <div class="card-body">
+                {% if review.purchase %}
+                <h4 class="card-title">{{review.car_make}}, {{review.car_model}}</h4>
+                <p class="card-subtitle mb-2 text-muted">{{review.purchase_date}}</p>
+                {% endif %}
+                <p class="card-text">{{review.review}}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
 
 </html>
+{% endblock content %}

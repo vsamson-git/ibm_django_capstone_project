@@ -25,14 +25,15 @@ def get_request(url, **kwargs):
         else:
             response = requests.get(url, headers={'Content-Type': 'application/json'},
                                     params=kwargs)
+        status_code = response.status_code
+        print("With status {} ".format(status_code))
+        json_data = json.loads(response.text)
+        return json_data
     except:
         # If any error occurs
         print("Network exception occurred")
-        raise
-    status_code = response.status_code
-    print("With status {} ".format(status_code))
-    json_data = json.loads(response.text)
-    return json_data
+        return {}
+    
 
 # Create a `post_request` to make HTTP POST requests
 # e.g., response = requests.post(url, params=kwargs, json=payload)
@@ -41,14 +42,16 @@ def post_request(url, json_payload, **kwargs):
     print("POST from {} ".format(url))
     try:
         response = requests.post(url, headers={'Content-Type': 'application/json'}, params=kwargs, json=json_payload)
+        status_code = response.status_code
+        print("With status {} ".format(status_code))
+        print(response.text)
+        json_data = json.loads(response.text)
+        return json_data
     except:
         # If any error occurs
         print("Network exception occurred")
-        raise
-    status_code = response.status_code
-    print("With status {} ".format(status_code))
-    json_data = json.loads(response.text)
-    return json_data
+        return {'result': False}
+    
 # Create a get_dealers_from_cf method to get dealers from a cloud function
 # def get_dealers_from_cf(url, **kwargs):
 # - Call get_request() with specified arguments
@@ -58,14 +61,14 @@ def get_dealers_from_cf(url, **kwargs):
     results = []
     # Call get_request with a URL parameter
     dealers = get_request(url, **kwargs)
-    dealers = dealers['dealerships']
-    if dealers:
+    if dealers and dealers.get('dealerships',0):
+        dealers = dealers['dealerships']
         # For each dealer object
         for dealer in dealers:
             dealer_obj = CarDealer(address=dealer["address"], city=dealer["city"], full_name=dealer["full_name"],
                                    id=dealer["id"], lat=dealer["lat"], long=dealer["long"],
                                    short_name=dealer["short_name"],
-                                   st=dealer["st"], zip=dealer["zip"])
+                                   state=dealer["st"], zip=dealer["zip"])
             results.append(dealer_obj)
 
     return results
@@ -97,14 +100,18 @@ def get_dealer_reviews_from_cf(url, **kwargs):
     results = []
     # Call get_request with a URL parameter
     reviews = get_request(url, **kwargs)
-    reviews = reviews['Reviews']
-    if reviews:
+    if reviews and reviews.get('Reviews', 0):
+        reviews = reviews['Reviews']
         # For each dealer object
         for review in reviews:
-            review_obj = DealerReview(dealership=review["dealership"], name=review["name"], sentiment = analyze_review_sentiments(review["review"]),
+            if review.get("purchase",0):
+                review_obj = DealerReview(dealership=review["dealership"], name=review["name"], sentiment = analyze_review_sentiments(review["review"]),
                                    purchase=review["purchase"], review=review["review"], purchase_date=review["purchase_date"],
                                    car_make=review["car_make"],
                                    car_model=review["car_model"], car_year=review["car_year"])
+            else:
+                review_obj = DealerReview(dealership=review["dealership"], name=review["name"], sentiment = analyze_review_sentiments(review["review"]),
+                                   review=review["review"], purchase=False)
             results.append(review_obj)
 
     return results

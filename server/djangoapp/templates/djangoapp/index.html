@@ -8,15 +8,42 @@
 </head>
 
 <body>
-    <ul>
-        {% for dealer in dealers %}
-        <li>
-            <p>Dealer name # {{ forloop.counter }}: {{ dealer }} </p>
-        </li>
-        {% endfor %}
-    </ul>
-
+    <table class="table" id="table" data-filter-control="true">
+        <thead>
+            <tr>
+                <th data-field="id">ID</th>
+                <th data-field="full_name">Full name</th>
+                <th data-field="city">City</th>
+                <th data-field="state" data-filter-control="select">State</th>
+                <th data-field="address">Address</th>
+                <th data-field="zip">Zip</th>
+                <th data-field="lat">Latitude</th>
+                <th data-field="long">Longitude</th>
+                <th data-field="short_name">Short_name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dealer in dealers %}
+            <tr>
+                <td>{{dealer.id}}</td>
+                <td><a href="{% url 'djangoapp:dealer_details' dealer.id %}">{{dealer.full_name}}</a></td>
+                <td>{{dealer.city}}</td>
+                <td>{{dealer.state}}</td>
+                <td>{{dealer.address}}</td>
+                <td>{{dealer.zip}}</td>
+                <td>{{dealer.lat}}</td>
+                <td>{{dealer.long}}</td>
+                <td>{{dealer.short_name}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
+<script>
+    $(function () {
+        $('#table').bootstrapTable()
+    })
+</script>
 
 </html>
 {% endblock content %}

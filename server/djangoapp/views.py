@@ -2,8 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
-# from .models import related models
-# from .restapis import related methods
+from .models import CarModel
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -23,10 +22,11 @@ def get_dealerships(request):
         dealerships = get_dealers_from_cf(url)
         # Concat all dealer's short name
         #dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
-        dealer_names = [dealer.short_name for dealer in dealerships]
+        #dealer_names = [dealer.short_name for dealer in dealerships]
         # Return a list of dealer short name
         #return HttpResponse(dealer_names)
-        context = {'dealers': dealer_names}
+        #print(dealerships[0].state)
+        context = {'dealers': dealerships}
         return render(request, 'djangoapp/index.html', context)
 
 # Create an `about` view to render a static about page
@@ -70,13 +70,33 @@ def registration_request(request):
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
 def get_dealer_details(request, dealer_id):
+    url = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/review"
+    reviews = get_dealer_reviews_from_cf(url, dealerId=dealer_id)
+    url2 = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/dealership"
+        # Get dealers from the URL
+    dealerships = get_dealers_from_cf(url2)
+    dealer_name = list(filter(lambda dealer: dealer.id == dealer_id, dealerships))[0].full_name
+    #reviews_only = [str(review.review) + " - " + str(review.sentiment) for review in reviews]
+    context = {}
+    context['reviews'] = reviews
+    context['dealer_id'] = dealer_id
+    context['dealer_name'] = dealer_name
+    return render(request, 'djangoapp/dealer_details.html', context)
+    #context = {'reviews': reviews_only}
+    #return render(request, 'djangoapp/index.html', context)
+
+        
+
+def add_review(request, dealer_id):
     if request.method == 'GET':
-        url = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/review"
-        reviews = get_dealer_reviews_from_cf(url, dealerId=dealer_id)
-        reviews_only = [str(review.review) + " - " + str(review.sentiment) for review in reviews]
-        return HttpResponse(reviews_only)
-        #context = {'reviews': reviews_only}
-        #return render(request, 'djangoapp/index.html', context)
+        cars = CarModel.objects.filter(dealer_id=dealer_id)
+
+        url2 = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/dealership"
+        dealerships = get_dealers_from_cf(url2)
+        dealer_name = list(filter(lambda dealer: dealer.id == dealer_id, dealerships))[0].full_name
+            
+        context= {'dealer_id': dealer_id, "cars": cars, 'dealer_name': dealer_name}
+        return render(request, 'djangoapp/add_review.html', context)
     else:
         if request.user.is_authenticated:
             url = "https://jknf8w2p09.execute-api.us-east-2.amazonaws.com/api/review"
@@ -88,17 +108,17 @@ def get_dealer_details(request, dealer_id):
                 review["purchase"] = request.POST.get('purchase', False)
                 if review["purchase"]:
                     review["purchase"] = True
-                    review["purchase_date"] = datetime.strptime(request.POST['purchase_date'], '%m-%d-%Y').date()
-                    review["car_make"] = request.POST['car_make']
-                    review["car_model"] = request.POST['car_model']
-                    review["car_year"] = request.POST['car_year']
-                check_review = post_request(url, review)['result']
+                    date = datetime.strptime(request.POST['purchase_date'], '%Y-%m-%d').date()
+                    review['purchase_date'] = f'{date.month}/{date.day}/{date.year}'
+                    car = CarModel.objects.get(id=request.POST['car'])
+                    review["car_make"] = car.car_make.name
+                    review["car_model"] = car.car_name
+                    review["car_year"] = car.car_year.year
+                check_review = post_request(url, review)['result']    
                 if check_review:
-                    return HttpResponse(f"Review '{check_review}' was added successfully")
+                    return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
                 return HttpResponse("There was an error while trying to load the review")
             except:
                 return HttpResponse("Not Enough Data for a review")
         else:
             return HttpResponse("You MUST authenticate first!")
-
-        
